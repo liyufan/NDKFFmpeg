@@ -7,7 +7,7 @@ cmake_minimum_required(VERSION 3.22.1)
 
 # Declares and names the project.
 
-project("ffmpeg")
+project("ndk_ffmpeg")
 
 # Creates and names a library, sets it as either STATIC
 # or SHARED, and provides the relative paths to its source code.
@@ -15,13 +15,32 @@ project("ffmpeg")
 # Gradle automatically packages shared libraries with your APK.
 
 add_library( # Sets the name of the library.
-        ffmpeg
+        video
 
         # Sets the library as a shared library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        native-lib.cpp)
+        native-lib.cpp tools/run.c)
+
+# Include ffmpeg header
+
+target_include_directories(video PRIVATE $ENV{FFMPEG_SOURCE_DIR})
+
+# Add ffmpeg tools source
+
+set(FFMPEG_TOOLS_SOURCE_DIR $ENV{FFMPEG_SOURCE_DIR}/fftools)
+file(GLOB FFMPEG_TOOLS_SOURCE ${FFMPEG_TOOLS_SOURCE_DIR}/*.c)
+list(REMOVE_ITEM FFMPEG_TOOLS_SOURCE
+        ${FFMPEG_TOOLS_SOURCE_DIR}/ffplay.c
+        ${FFMPEG_TOOLS_SOURCE_DIR}/ffmpeg.c
+        ${FFMPEG_TOOLS_SOURCE_DIR}/ffprobe.c)
+target_sources(video PRIVATE ${FFMPEG_TOOLS_SOURCE})
+
+# Link ffmpeg so
+
+set(FFMPEG_LIB_DIR ../jniLibs/${ANDROID_ABI})
+target_link_directories(video PRIVATE ${FFMPEG_LIB_DIR})
 
 # Searches for a specified prebuilt library and stores the path as a
 # variable. Because CMake includes system libraries in the search path by
@@ -41,7 +60,7 @@ find_library( # Sets the name of the path variable.
 # build script, prebuilt third-party libraries, or system libraries.
 
 target_link_libraries( # Specifies the target library.
-        ffmpeg
+        video avcodec avdevice avfilter avformat avutil swresample swscale
 
         # Links the target library to the log library
         # included in the NDK.

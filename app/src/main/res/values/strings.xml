@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NDKFFmpeg</string>
+    <string name="compress">Compress</string>
 </resources>
