@@ -32,4 +32,4 @@ google-services.json
 # Extra
 .DS_Store
 gradle/wrapper/gradle-wrapper.jar
-gradle.properties
+keystore.properties

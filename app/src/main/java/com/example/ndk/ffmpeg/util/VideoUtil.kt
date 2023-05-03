@@ -3,8 +3,6 @@ package com.example.ndk.ffmpeg.util
 import android.content.Context
 import android.os.Environment
 import android.provider.MediaStore
-import android.widget.TextView
-import androidx.appcompat.app.AlertDialog
 import androidx.core.content.contentValuesOf
 import com.example.ndk.ffmpeg.BaseApplication
 import com.example.ndk.ffmpeg.R
@@ -13,31 +11,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 object VideoUtil {
 
     private const val TAG = "VideoUtil"
 
-    private suspend fun compressVideo(inFile: File, dialog: AlertDialog) =
-        withContext(Dispatchers.IO) {
-            val outFile = getOutputVideoFile(BaseApplication.context)
-            val compressCommand = arrayOf(
-                "ffmpeg", "-i", inFile.absolutePath, "-b:v", "1024k", outFile.absolutePath
-            )
-            VideoCompress.compressVideo(compressCommand, object : VideoCompress.CompressCallback {
-                override fun onCompress(current: Long, total: Long) {
-                    val tv = dialog.findViewById<TextView>(R.id.tv)
-                    val compressPercentage = (current * 100 / total).toInt()
-                    val compressProgressMsg = "Compress progress: $compressPercentage%"
-                    tv?.text = compressProgressMsg
-                }
-            })
-            outFile
-        }
+    private suspend fun compressVideo(
+        inFile: File, compressCallback: VideoCompress.CompressCallback
+    ) = withContext(Dispatchers.IO) {
+        val outFile = getOutputVideoFile(BaseApplication.context)
+        val compressCommand = arrayOf(
+            "ffmpeg", "-i", inFile.absolutePath, "-b:v", "1024k", outFile.absolutePath
+        )
+        VideoCompress.compressVideo(compressCommand, compressCallback)
+        outFile
+    }
 
-    suspend fun compressVideoAndCopy(context: Context, inFile: File, dialog: AlertDialog) {
-        val outFile = compressVideo(inFile, dialog)
+    suspend fun compressVideoAndCopy(
+        context: Context, inFile: File, compressCallback: VideoCompress.CompressCallback
+    ) {
+        val outFile = compressVideo(inFile, compressCallback)
         val outFileName = outFile.name
         val values = contentValuesOf(
             MediaStore.Video.Media.DISPLAY_NAME to outFileName,
